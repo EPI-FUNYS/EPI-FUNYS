@@ -17,6 +17,8 @@
             color: white;
             text-align: center;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         h1 {
@@ -29,8 +31,32 @@
         /* ===== CONTAINER ===== */
         .container { 
             max-width: 1000px; 
-            margin: auto; 
-            padding: 20px; 
+            margin: 0 auto; 
+            padding: 20px;
+            flex: 1 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            flex-shrink: 0;
+            text-align: right;
+            padding: 15px 25px;
+            font-size: 0.85em;
+            color: rgba(255,255,255,0.4);
+            background: transparent;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 20px;
+        }
+        
+        .footer span {
+            background: rgba(0,0,0,0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            display: inline-block;
         }
 
         /* ===== INPUT FIELDS ===== */
@@ -98,6 +124,7 @@
         /* ===== RANKING LIST ===== */
         .ranking {
             margin-top: 40px;
+            margin-bottom: 10px;
             text-align: left;
             background: rgba(255,255,255,0.05);
             padding: 20px;
@@ -212,8 +239,7 @@
         @media screen and (max-width: 768px) {
             /* Keep desktop layout but make it scrollable and readable */
             body {
-                padding: 10px;
-                box-sizing: border-box;
+                padding: 0;
             }
             
             h1 {
@@ -224,8 +250,6 @@
             
             .container {
                 padding: 10px;
-                width: 100%;
-                box-sizing: border-box;
             }
             
             /* Stack inputs vertically on mobile */
@@ -268,6 +292,7 @@
             /* Ranking list improvements for mobile */
             .ranking {
                 margin-top: 20px;
+                margin-bottom: 5px;
                 padding: 15px;
                 overflow-x: hidden;
             }
@@ -321,6 +346,12 @@
             .modal-buttons button {
                 min-height: 44px; /* Apple's recommended minimum */
             }
+            
+            /* Footer on mobile */
+            .footer {
+                padding: 10px 15px 15px;
+                font-size: 0.75em;
+            }
         }
 
         /* Small phone adjustments */
@@ -335,6 +366,10 @@
             
             .song-item {
                 font-size: 0.9em;
+            }
+            
+            .footer {
+                padding: 8px 12px 12px;
             }
         }
     </style>
@@ -360,6 +395,11 @@
         <h3>🔥 Worst → Least Bad</h3>
         <div id="rankingList"></div>
     </div>
+</div>
+
+<!-- Footer with version number -->
+<div class="footer">
+    <span>v2.5.0 • Song Badness Index</span>
 </div>
 
 <!-- Modal for share link -->
