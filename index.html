@@ -6,6 +6,8 @@
     <!-- Add compression libraries -->
     <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+    <!-- Add viewport meta tag for mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <style>
         /* ===== BODY & HEADINGS ===== */
         body {
@@ -14,6 +16,7 @@
             background: linear-gradient(135deg, #141e30, #243b55);
             color: white;
             text-align: center;
+            min-height: 100vh;
         }
 
         h1 {
@@ -24,7 +27,11 @@
         }
 
         /* ===== CONTAINER ===== */
-        .container { max-width: 1000px; margin: auto; padding: 20px; }
+        .container { 
+            max-width: 1000px; 
+            margin: auto; 
+            padding: 20px; 
+        }
 
         /* ===== INPUT FIELDS ===== */
         input {
@@ -76,7 +83,17 @@
         #shareBtn:hover { background: #b185f0; }
 
         /* ===== CHART ===== */
-        canvas { margin-top: 40px; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            min-height: 400px;
+            margin-top: 40px;
+        }
+        
+        canvas { 
+            max-width: 100%;
+            height: auto !important;
+        }
 
         /* ===== RANKING LIST ===== */
         .ranking {
@@ -143,6 +160,7 @@
             font-size: 1.2em;
             margin-bottom: 20px;
             font-weight: 600;
+            word-break: break-word;
         }
 
         .modal-buttons {
@@ -189,6 +207,136 @@
             word-break: break-all;
             text-align: left;
         }
+
+        /* ===== MOBILE STYLES (only apply on small screens) ===== */
+        @media screen and (max-width: 768px) {
+            /* Keep desktop layout but make it scrollable and readable */
+            body {
+                padding: 10px;
+                box-sizing: border-box;
+            }
+            
+            h1 {
+                font-size: 2em;
+                margin-top: 15px;
+                word-break: break-word;
+            }
+            
+            .container {
+                padding: 10px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            
+            /* Stack inputs vertically on mobile */
+            input {
+                width: calc(100% - 20px) !important;
+                max-width: 100%;
+                margin: 5px 0;
+                box-sizing: border-box;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            input[type=number] { 
+                width: calc(100% - 20px) !important; 
+            }
+            
+            input[type=url] { 
+                width: calc(100% - 20px) !important; 
+            }
+            
+            /* Make buttons stack and be touch-friendly */
+            button {
+                width: calc(100% - 10px);
+                margin: 5px;
+                padding: 15px; /* Larger touch target */
+                font-size: 16px;
+            }
+            
+            /* Chart container adjustments */
+            .chart-container {
+                min-height: 300px;
+                margin-top: 20px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            canvas {
+                min-width: 300px; /* Ensure chart is scrollable if needed */
+            }
+            
+            /* Ranking list improvements for mobile */
+            .ranking {
+                margin-top: 20px;
+                padding: 15px;
+                overflow-x: hidden;
+            }
+            
+            .song-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 12px 8px;
+            }
+            
+            .song-item span {
+                width: 100%;
+                word-break: break-word;
+                line-height: 1.4;
+            }
+            
+            .remove-btn {
+                align-self: flex-end;
+                padding: 8px 16px; /* Larger touch target */
+                font-size: 14px;
+                margin-top: 5px;
+            }
+            
+            /* Modal adjustments for mobile */
+            .modal {
+                width: 95%;
+                padding: 20px;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+            
+            .modal-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .modal-buttons button {
+                width: 100%;
+                margin: 0;
+            }
+            
+            .share-link-box {
+                max-height: 200px;
+                font-size: 14px;
+            }
+            
+            /* Better touch targets for all interactive elements */
+            button, 
+            .remove-btn,
+            .modal-buttons button {
+                min-height: 44px; /* Apple's recommended minimum */
+            }
+        }
+
+        /* Small phone adjustments */
+        @media screen and (max-width: 480px) {
+            h1 {
+                font-size: 1.6em;
+            }
+            
+            .ranking h3 {
+                font-size: 1.2em;
+            }
+            
+            .song-item {
+                font-size: 0.9em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -204,7 +352,9 @@
     <button id="resetBtn">Reset</button>
     <button id="shareBtn">🔗 Share Rankings</button>
 
-    <canvas id="myChart"></canvas>
+    <div class="chart-container">
+        <canvas id="myChart"></canvas>
+    </div>
 
     <div class="ranking">
         <h3>🔥 Worst → Least Bad</h3>
@@ -308,15 +458,29 @@ window.addEventListener('load', function(){
         options: {
             indexAxis: 'y',
             animation: { duration: 800 },
+            responsive: true,
+            maintainAspectRatio: true,
             scales: {
                 x: { 
-                    beginAtZero: true, max:25, 
-                    grid: { color:"rgba(255,255,255,0.1)" },
-                    ticks: { color:"white", font: { size:14, weight:'500' } }
+                    beginAtZero: true, 
+                    max: 25, 
+                    grid: { color: "rgba(255,255,255,0.1)" },
+                    ticks: { 
+                        color: "white", 
+                        font: { size: 14, weight: '500' },
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
                 },
                 y: { 
                     grid: { display: false }, 
-                    ticks: { color:"white", autoSkip: false, font: { size:14, weight:'bold' } } 
+                    ticks: { 
+                        color: "white", 
+                        autoSkip: false, 
+                        font: { size: 14, weight: 'bold' },
+                        maxRotation: 0,
+                        minRotation: 0
+                    } 
                 }
             },
             plugins: {
@@ -445,6 +609,15 @@ window.addEventListener('load', function(){
         if (link) {
             navigator.clipboard.writeText(link).then(() => {
                 alert('Link copied!');
+            }).catch(() => {
+                // Fallback for mobile
+                const textArea = document.createElement('textarea');
+                textArea.value = link;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Link copied!');
             });
         }
     });
@@ -516,6 +689,13 @@ window.addEventListener('load', function(){
         updateChart();
         updateRanking();
     }
+
+    // Handle mobile orientation changes
+    window.addEventListener('resize', function() {
+        if (chart) {
+            chart.update();
+        }
+    });
 });
 </script>
 
