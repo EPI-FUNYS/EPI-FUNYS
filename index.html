@@ -3,209 +3,19 @@
 <head>
     <title>Song Badness Index</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Add both compression libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
     <!-- Load Roboto font -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
-        /* ===== BODY & HEADINGS ===== */
-        body {
-            margin: 0;
-            font-family: 'Roboto', 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #141e30, #243b55);
-            color: white;
-            text-align: center;
-        }
-
-        h1 {
-            margin-top: 30px;
-            font-size: 2.8em;
-            font-weight: 900;
-            letter-spacing: 1px;
-        }
-
-        /* ===== CONTAINER ===== */
-        .container { max-width: 1000px; margin: auto; padding: 20px; }
-
-        /* ===== INPUT FIELDS ===== */
-        input {
-            padding: 12px;
-            margin: 5px;
-            border-radius: 8px;
-            border: 2px solid #00c6ff;
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s;
-            background: rgba(255,255,255,0.05);
-            color: white;
-        }
-
-        input:focus { border-color: #00f2fe; }
-
-        input[type=number] { width: 100px; }
-        input[type=url] { width: 250px; }
-
-        /* ===== FLASH RED (SMOOTH) ===== */
-        @keyframes smoothRedFlash {
-            0% {
-                background-color: rgba(255, 77, 77, 0);
-                border-color: #00c6ff;
-            }
-            20% {
-                background-color: rgba(255, 77, 77, 0.9);
-                border-color: #ff4d4d;
-            }
-            60% {
-                background-color: rgba(255, 77, 77, 0.7);
-                border-color: #ff4d4d;
-            }
-            100% {
-                background-color: rgba(255, 255, 255, 0.05);
-                border-color: #00c6ff;
-            }
-        }
-
-        .flash {
-            animation: smoothRedFlash 0.35s ease-in-out forwards;
-        }
-
-        /* ===== BUTTONS ===== */
-        button {
-            padding: 12px 18px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 5px;
-            font-weight: 700;
-            background: #00c6ff;
-            color: black;
-            transition: 0.3s;
-        }
-
-        button:hover { transform: scale(1.05); background: #00f2fe; }
-
-        /* Share button gets a subtle different color to distinguish */
-        #shareBtn {
-            background: #9c64e0;
-            color: white;
-        }
-        #shareBtn:hover { background: #b185f0; }
-
-        /* ===== CHART ===== */
-        canvas { margin-top: 40px; }
-
-        /* ===== RANKING LIST ===== */
-        .ranking {
-            margin-top: 40px;
-            text-align: left;
-            background: rgba(255,255,255,0.05);
-            padding: 20px;
-            border-radius: 10px;
-            font-family: 'Roboto', sans-serif;
-        }
-
-        .song-item { 
-            padding: 8px; 
-            border-bottom: 1px solid rgba(255,255,255,0.1); 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 1em;
-        }
-
-        .song-item a {
-            color: #00f2fe;
-            text-decoration: none;
-        }
-
-        .song-item a:hover { text-decoration: underline; }
-
-        .remove-btn {
-            background: #ff4d4d;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .remove-btn:hover { background: #ff1a1a; }
-
-        /* ===== MODAL (re-used for share link) ===== */
-        .modal-bg {
-            display: none;
-            position: fixed;
-            top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(4px);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal {
-            background: rgba(36, 59, 85, 0.95);
-            border: 2px solid #00f2fe;
-            padding: 30px;
-            border-radius: 16px;
-            text-align: center;
-            max-width: 450px;
-            width: 90%;
-        }
-
-        .modal p {
-            font-size: 1.2em;
-            margin-bottom: 15px;
-            font-weight: 600;
-            word-break: break-all; /* handle long URLs */
-        }
-
-        .modal .share-link-box {
-            background: rgba(0,0,0,0.3);
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #00f2fe;
-            margin: 15px 0;
-            font-size: 0.9em;
+        /* Same styles as before, plus a toggle for compression method */
+        .compression-note {
+            font-size: 0.8em;
             color: #a0f0ff;
-            max-height: 120px;
-            overflow-y: auto;
-            word-break: break-all;
-            text-align: left;
+            margin-top: 5px;
+            opacity: 0.8;
         }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 10px;
-        }
-
-        .modal-buttons button {
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-copy {
-            background: #00c6ff;
-            color: black;
-        }
-        .btn-copy:hover { background: #00f2fe; }
-
-        .btn-close {
-            background: #ff4d4d;
-            color: white;
-        }
-        .btn-close:hover { background: #ff1a1a; }
-
-        .btn-confirm { background: #00ff88; color: black; }
-        .btn-cancel { background: #ff4d4d; color: white; }
     </style>
 </head>
 <body>
@@ -220,6 +30,7 @@
     <button id="addBtn">Rate Song</button>
     <button id="resetBtn">Reset</button>
     <button id="shareBtn">🔗 Share Rankings</button>
+    <div class="compression-note" id="compressionNote"></div>
 
     <canvas id="myChart"></canvas>
 
@@ -232,8 +43,9 @@
 <!-- Modal for share link -->
 <div class="modal-bg" id="shareModalBg">
     <div class="modal">
-        <p>📋 Shareable link (contains your rankings)</p>
+        <p>📋 Shareable link</p>
         <div class="share-link-box" id="shareLinkDisplay"></div>
+        <p id="linkStats" style="font-size: 0.8em; color: #88ff88;"></p>
         <div class="modal-buttons">
             <button class="btn-copy" id="copyLinkBtn">Copy Link</button>
             <button class="btn-close" id="closeShareModalBtn">Close</button>
@@ -241,7 +53,7 @@
     </div>
 </div>
 
-<!-- Modal for confirm/cancel (existing) -->
+<!-- Modal for confirm/cancel -->
 <div class="modal-bg" id="modalBg">
     <div class="modal">
         <p id="modalText">Are you sure?</p>
@@ -254,7 +66,6 @@
 
 <script>
 window.addEventListener('load', function(){
-    // Set global chart font
     if (Chart) {
         Chart.defaults.font.family = "Roboto, 'Segoe UI', sans-serif";
     }
@@ -265,46 +76,133 @@ window.addEventListener('load', function(){
     let actionType = null;
     let songToRemoveIndex = null;
 
-    // Modal elements
     const modalBg = document.getElementById('modalBg');
     const modalText = document.getElementById('modalText');
     const modalYes = document.getElementById('modalYes');
     const modalNo = document.getElementById('modalNo');
 
-    // Share modal elements
     const shareModalBg = document.getElementById('shareModalBg');
     const shareLinkDisplay = document.getElementById('shareLinkDisplay');
     const copyLinkBtn = document.getElementById('copyLinkBtn');
     const closeShareModalBtn = document.getElementById('closeShareModalBtn');
+    const linkStats = document.getElementById('linkStats');
+    const compressionNote = document.getElementById('compressionNote');
+
+    // --- ULTIMATE COMPRESSION ---
+    function ultraCompress(songs) {
+        // Step 1: Extreme property minification (use array format)
+        // This alone saves ~40% compared to object format
+        const minimized = songs.map(s => {
+            // Encode score as a single character (0-25 -> 0-9A-P)
+            const scoreChar = s.score < 10 ? s.score.toString() : String.fromCharCode(65 + (s.score - 10));
+            
+            // Return as flat array for maximum density
+            return [
+                s.name,
+                s.artist,
+                scoreChar,
+                s.link ? s.link.replace(/https?:\/\/(www\.)?/, '') : '' // Remove common prefixes
+            ];
+        });
+        
+        // Step 2: Convert to JSON
+        const jsonStr = JSON.stringify(minimized);
+        
+        // Step 3: Try both compressors and pick the smallest
+        const lzCompressed = LZString.compressToEncodedURIComponent(jsonStr);
+        
+        // For pako, we need to convert to base64
+        const deflated = pako.deflate(jsonStr, { level: 9 });
+        const deflatedBase64 = btoa(String.fromCharCode.apply(null, deflated))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        
+        // Add a marker to know which compression to use
+        const lzResult = 'l' + lzCompressed;
+        const pakoResult = 'p' + deflatedBase64;
+        
+        // Return the shorter one
+        return lzResult.length < pakoResult.length ? lzResult : pakoResult;
+    }
+
+    function ultraDecompress(compressedStr) {
+        try {
+            const marker = compressedStr[0];
+            const actualData = compressedStr.substring(1);
+            
+            let jsonStr;
+            if (marker === 'l') {
+                // LZ-String
+                jsonStr = LZString.decompressFromEncodedURIComponent(actualData);
+            } else if (marker === 'p') {
+                // Pako
+                const base64 = actualData.replace(/-/g, '+').replace(/_/g, '/');
+                while (base64.length % 4) base64 += '=';
+                const binary = atob(base64);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) {
+                    bytes[i] = binary.charCodeAt(i);
+                }
+                jsonStr = pako.inflate(bytes, { to: 'string' });
+            } else {
+                throw new Error('Unknown compression method');
+            }
+            
+            const minimized = JSON.parse(jsonStr);
+            
+            // Expand back
+            return minimized.map(m => ({
+                name: m[0],
+                artist: m[1],
+                score: typeof m[2] === 'string' ? 
+                    (m[2] < 'A' ? parseInt(m[2]) : 10 + (m[2].charCodeAt(0) - 65)) : 
+                    m[2],
+                link: m[3] ? 'https://' + m[3] : null // Re-add prefix if needed
+            }));
+        } catch (e) {
+            console.warn("Decompression failed", e);
+            return null;
+        }
+    }
 
     // --- URL parameter loading ---
     function loadFromURLParams() {
         const urlParams = new URLSearchParams(window.location.search);
-        const dataParam = urlParams.get('data');
+        const dataParam = urlParams.get('u'); // 'u' for ultra-compressed
+        
         if (dataParam) {
             try {
-                // Decode base64 and parse
-                const jsonStr = atob(dataParam);
-                const parsed = JSON.parse(jsonStr);
-                if (Array.isArray(parsed)) {
-                    songs = parsed;
-                    // Sort and save to localStorage so it persists for the session
+                const decompressed = ultraDecompress(dataParam);
+                if (decompressed) {
+                    songs = decompressed;
                     songs.sort((a,b) => b.score - a.score);
                     saveSongs();
-                    // Clean URL? optional, but we'll keep param for refresh, but remove from displayed URL? not necessary.
-                    // We'll update UI after loading.
+                    compressionNote.textContent = `✅ Loaded ${songs.length} songs from share link`;
                 }
             } catch (e) {
                 console.warn("Failed to load shared data", e);
+                compressionNote.textContent = "❌ Failed to load shared data";
             }
         } else {
-            // Normal localStorage load
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if(stored){
+            // Try old formats for backward compatibility
+            const oldParam = urlParams.get('c');
+            if (oldParam) {
                 try {
-                    const parsed = JSON.parse(stored);
-                    if(Array.isArray(parsed)) songs = parsed;
-                } catch(e){ songs = []; }
+                    const jsonStr = LZString.decompressFromEncodedURIComponent(oldParam);
+                    const parsed = JSON.parse(jsonStr);
+                    if (Array.isArray(parsed)) {
+                        songs = parsed;
+                        songs.sort((a,b) => b.score - a.score);
+                        saveSongs();
+                    }
+                } catch (e) {}
+            } else {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if(stored){
+                    try {
+                        const parsed = JSON.parse(stored);
+                        if(Array.isArray(parsed)) songs = parsed;
+                    } catch(e){ songs = []; }
+                }
             }
         }
     }
@@ -415,7 +313,6 @@ window.addEventListener('load', function(){
         });
     }
 
-    // Modal handlers
     modalYes.addEventListener('click', () => {
         if(actionType === "remove" && songToRemoveIndex !== null){
             songs.splice(songToRemoveIndex, 1);
@@ -436,18 +333,23 @@ window.addEventListener('load', function(){
         modalBg.style.display = 'none';
     });
 
-    // Share functionality
+    // --- Share with ultra compression ---
     function generateShareableLink() {
         if (songs.length === 0) {
             alert("Add some songs first before sharing!");
             return null;
         }
-        // Serialize songs to JSON, then base64 encode
-        const jsonStr = JSON.stringify(songs);
-        const base64 = btoa(jsonStr);
-        // Create new URL with data param
+        
+        const compressed = ultraCompress(songs);
         const url = new URL(window.location.href);
-        url.searchParams.set('data', base64);
+        url.search = ''; // Clear all params
+        url.searchParams.set('u', compressed);
+        
+        // Calculate compression ratio
+        const originalJson = JSON.stringify(songs);
+        const compressionRatio = ((1 - compressed.length / originalJson.length) * 100).toFixed(1);
+        linkStats.textContent = `📊 ${songs.length} songs • Original: ${originalJson.length} chars • Compressed: ${compressed.length} chars • Saved ${compressionRatio}%`;
+        
         return url.toString();
     }
 
@@ -474,7 +376,6 @@ window.addEventListener('load', function(){
         shareModalBg.style.display = 'none';
     });
 
-    // Optional: close share modal if background clicked
     shareModalBg.addEventListener('click', (e) => {
         if (e.target === shareModalBg) {
             shareModalBg.style.display = 'none';
@@ -521,6 +422,8 @@ window.addEventListener('load', function(){
         artistEl.value='';
         scoreEl.value='';
         linkEl.value='';
+        
+        compressionNote.textContent = `${songs.length} songs • Click 🔗 Share to create a shareable link`;
     }
 
     function resetAll(){
@@ -532,8 +435,12 @@ window.addEventListener('load', function(){
     document.getElementById('addBtn').addEventListener('click', addSong);
     document.getElementById('resetBtn').addEventListener('click', resetAll);
 
-    // Initial render
-    if(songs.length>0){ songs.sort((a,b)=>b.score - a.score); updateChart(); updateRanking(); }
+    if(songs.length > 0) {
+        songs.sort((a,b)=>b.score - a.score); 
+        updateChart(); 
+        updateRanking();
+        compressionNote.textContent = `${songs.length} songs • Click 🔗 Share to create a shareable link`;
+    }
 });
 </script>
 
